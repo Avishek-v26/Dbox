@@ -201,6 +201,15 @@ body.allow-scroll {
 
 .muted a { color: #00e6ff; text-decoration: none; }
 
+.createBoxForm{
+  display: flex;
+  /* flex-direction: column; */
+  /* justify-content: center;
+  align-items: center;
+  gap: 12px; */
+  display: flex;
+}
+
 /* Home page / navbar styles */
 .site-header {
   width: 100%;
