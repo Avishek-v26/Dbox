@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create D-Box</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container create D-Box">
+    <h1 class="title">Create your <span class="gradient-text">D-Box</span></h1>
+
+    <div class="Box-card">
+      <form id="createBoxForm">
+        <label for="groupName">Enter Group Name</label>
+        <input type="text" id="groupName" name="groupName" required>
+
+        <label for="groupDescription">Enter Group Description</label><br>
+        <textarea id="groupDescription" name="groupDescription" rows="4" cols="50"></textarea><br><br>
+
+        <label for="capacity">Initial Group Capacity</label>
+        <input type="number" id="capacity" name="capacity" required min="1" max="100">
+
+        <button type="submit" class="btn primary">Create Group</button>
+      </form>
+
+      <p class="muted">Doubtful? <a href="createbox.html">Clear form</a></p>
+    </div>
+  </div>
+
+  <script>
+    const groups = JSON.parse(localStorage.getItem('groups')) || [];
+
+    function saveGroups() {
+      localStorage.setItem('groups', JSON.stringify(groups));
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    }
+
+    document.getElementById('createBoxForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const title = document.getElementById('groupName').value.trim();
+      const description = document.getElementById('groupDescription').value.trim();
+      const capacity = Number(document.getElementById('capacity').value);
+
+      if (!title || !capacity) {
+        alert('Please fill in required fields.');
+        return;
+      }
+
+      const newGroup = {
+        id: uid(),
+        title,
+        description,
+        capacity,
+        members: [],
+        files: []
+      };
+
+      groups.push(newGroup);
+      saveGroups();
+
+      alert('Group created successfully. You will be taken to dashboard.');
+      window.location.href = '/dashboard';
+    });
+  </script>
+</body>
+</html>

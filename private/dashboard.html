@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exist Box</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+<div class="main-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
+        <h3>D-Box</h3>
+        <ul>
+            <li id="menudashboard">Dashboard</li>
+            <li id="newMenu">New Box</li>
+            <li id="menuExisting">Existing</li>
+            <li id="menuSettings">Settings</li>
+        </ul>
+    </div>
+
+    <!-- RIGHT CONTENT -->
+    <div class="exist-box-container" id="existingSection">
+        <!-- <h2 class="section-title">Old Boxes</h2> -->
+
+        <div class="box-list">
+
+            <div class="exist-box-card">
+                <div class="box-content">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Add User Button -->
+        <div class="button-group">
+            <div class="group-actions">
+                <select id="groupSelect" class="group-select">
+                    <option value="">Select group (or last group by default)</option>
+                </select>
+                <input id="shareInput" placeholder="Share with user emails (comma separated)">
+            </div>
+            <button class="add-box-btn">
+             <i class="fa-solid fa-plus"></i>
+            </button>
+
+          <label for="pdfUpload" class="upload-pdf-btn">
+             <i class="fa-solid fa-upload"></i>
+          </label>
+          <input type="file" id="pdfUpload" multiple hidden>
+        <p id="pdfName" class="pdf-name"></p>
+
+    </div>
+</div>
+<script>
+  const groups = JSON.parse(localStorage.getItem('groups')) || [];
+
+// save to local storage
+function saveGroups() {
+    localStorage.setItem('groups', JSON.stringify(groups));
+}
+
+// unique id generator
+function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2,5);
+}
+
+// Build group select dropdown
+function buildGroupSelect() {
+    const groupSelect = document.getElementById('groupSelect');
+    groupSelect.innerHTML = '<option value="">Select group (or last group by default)</option>';
+    groups.forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g.id;
+      opt.textContent = g.title;
+      groupSelect.appendChild(opt);
+    });
+}
+
+// Render all boxes
+function render() {
+    buildGroupSelect();
+
+    const list = document.querySelector('.box-list');
+    list.innerHTML = '';
+
+    if (groups.length === 0) {
+      list.innerHTML = '<p>No groups. Create one first in "Create Box" page.</p>';
+      return;
+    }
+
+    groups.forEach(group => {
+      const card = document.createElement('div');
+      card.className = 'exist-box-card';
+
+      const header = document.createElement('div');
+      header.className = 'box-header';
+      header.innerHTML = `
+        <span class="box-title">${group.title}</span>
+        <div class="actions">
+          <button onclick="editGroup('${group.id}')">✏️</button>
+          <button onclick="deleteGroup('${group.id}')">🗑</button>
+        </div>
+      `;
+      card.appendChild(header);
+
+      const detail = document.createElement('div');
+      detail.className = 'box-content';
+      detail.innerHTML = `
+        <p>${group.description || '<i>No description</i>'}</p>
+        <p><strong>Capacity:</strong> ${group.capacity || 0}</p>
+        <p><strong>Members:</strong> ${group.members.length ? group.members.join(', ') : 'None'}</p>
+      `;
+      card.appendChild(detail);
+
+      const fileList = document.createElement('div');
+      fileList.className = 'box-files';
+      fileList.innerHTML = '<strong>Files:</strong>';
+
+      if (group.files.length === 0) {
+        const empty = document.createElement('p');
+        empty.textContent = 'No files yet. Upload using the button above.';
+        fileList.appendChild(empty);
+      } else {
+        group.files.forEach(file => {
+          const row = document.createElement('div');
+          row.className = 'file-item';
+          row.innerHTML = `
+            <span>${file.fileName} (${(file.size/1024).toFixed(2)} KB)</span>
+            <span style="font-size:0.85em; color:#666;">Shared: ${file.sharedWith.length ? file.sharedWith.join(', ') : 'No one'}</span>
+          `;
+          fileList.appendChild(row);
+        });
+      }
+      card.appendChild(fileList);
+
+      const memberInput = document.createElement('input');
+      memberInput.type = 'text';
+      memberInput.placeholder = 'Add member email';
+      memberInput.className = 'member-input';
+
+      const memberAddBtn = document.createElement('button');
+      memberAddBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Add member';
+      memberAddBtn.className = 'member-button';
+      memberAddBtn.onclick = () => {
+        const value = memberInput.value.trim();
+        if (!value) return alert('Enter email');
+        if (!group.members.includes(value)) {
+          group.members.push(value);
+          saveGroups();
+          render();
+        } else {
+          alert('Member already exists');
+        }
+        memberInput.value = '';
+      };
+
+      const memberControl = document.createElement('div');
+      memberControl.className = 'member-control';
+      memberControl.appendChild(memberInput);
+      memberControl.appendChild(memberAddBtn);
+      card.appendChild(memberControl);
+
+      list.appendChild(card);
+    });
+}
+
+// Add new box
+function addGroup() {
+    window.location.href = "/createbox";
+}
+
+// Edit group title
+function editGroup(groupId) {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    const newTitle = prompt('Edit group name', group.title);
+    if (newTitle) {
+      group.title = newTitle.trim();
+      saveGroups();
+      render();
+    }
+}
+
+// Delete group
+function deleteGroup(groupId) {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+
+    const confirmed = confirm(`Delete group "${group.title}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    const idx = groups.findIndex(g => g.id === groupId);
+    if (idx === -1) return;
+    groups.splice(idx, 1);
+    saveGroups();
+    render();
+}
+
+document.querySelector(".add-box-btn").onclick = addGroup;
+
+render();
+
+//// MENU HIGHLIGHT FUNCTION
+function activateMenu(menuId) {
+    const menus =["menudashboard", "newMenu", "menuExisting", "menuSettings"];
+    menus.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("active");
+    });
+    const current = document.getElementById(menuId);
+    if (current) current.classList.add("active");
+}
+
+//page load: activate existing menu highlight
+window.onload = function() {
+    activateMenu("menuExisting");
+};  
+
+//Dashboard existing
+window.onload = function(){ 
+  const hash = window.location.hash.toLocaleLowerCase();
+  if (hash === "#existing"){
+      showExisting();
+  }
+};
+
+function showExisting(){
+    //section show/hide
+    document.getElementById("dashboardSection").style.display = "none";
+    document.getElementById("existingSection").style.display = "block";
+
+    //menu highlight
+    document.getElementById("menudashboard").classList.remove("active");
+    document.getElementById("menuExisting").classList.add("active");
+}
+
+// show file name after upload
+const pdfUpload = document.getElementById("pdfUpload");
+
+pdfUpload.addEventListener("change", function() {
+    const selectedFiles = Array.from(this.files);
+    if (groups.length === 0) {
+        alert('Please create a group first!');
+        this.value = '';
+        return;
+    }
+
+    const selectedGroupId = document.getElementById('groupSelect').value;
+    let targetGroup = groups.find(g => g.id === selectedGroupId);
+    if (!targetGroup) {
+      targetGroup = groups[groups.length - 1];
+    }
+
+    const sharedWith = document.getElementById('shareInput').value
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    selectedFiles.forEach(file => {
+      targetGroup.files.push({
+        id: uid(),
+        fileName: file.name,
+        size: file.size,
+        sharedWith,
+        uploadedAt: new Date().toISOString()
+      });
+    });
+
+    saveGroups();
+    render();
+    this.value = '';
+    document.getElementById('shareInput').value = '';
+});
+
+//sidebar navigation add 
+document.getElementById("menudashboard").onclick = function() {
+    window.location.href = "/dashboard";
+};
+
+document.getElementById("menuExisting").onclick = function() {
+    window.location.href = "/userbox";
+};
+
+document.getElementById("newMenu").onclick = function() {
+    window.location.href = "/createbox";
+};
+
+document.getElementById("menuExisting").onclick = function() {
+    window.location.href = "/dashboard#existing";
+};
+
+document.getElementById("menuSettings").onclick = function() {
+    window.location.href = "/settings";
+};
+
+
+
+
+//fetch upload code or backend fetch code to show uploaded file name in dashboard
+const pdfUploadInput = document.getElementById("pdfUpload");
+pdfUploadInput.addEventListener("change", async function () {
+
+    const file = this.files[0];
+
+    const formData = new FormData();
+    formData.append("pdf", file);
+
+    const res = await fetch("https://localhost:5000/api/box/upload", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await res.json();
+
+    if(data.success) {
+        loadFiles(); //refesh file list after upload
+    }
+});
+
+
+
+
+//load function to show uploaded file name
+async function loadFiles() {
+
+    const  res = await fetch("https://localhost:5000/api/box/files");
+    const files = await res.json();
+
+    const list = document.querySelector(".box-list");   
+    list.innerHTML = "";
+
+    files.forEach(file => {
+
+        const card = document.createElement("div");
+        card.className = "exist-box-card";
+
+        card.innerHTML = `
+            <div class="box-header">
+                <span class="box-title">${file}</span>
+            </div>
+        `;
+        list.appendChild(card);
+
+    });
+    
+}
+loadFiles();
+
+
+
+
+
+</script>
+
+</body>
+</html>

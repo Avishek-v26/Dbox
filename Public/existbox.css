@@ -1,0 +1,108 @@
+/* Whole Page Layout */
+.main-layout {
+    display: flex;
+    height: 100vh;
+    background: #f0f4ff;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px;
+    background: #1e3a8a;
+    color: white;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar h3 {
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    padding: 12px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.sidebar li:hover,
+.sidebar .active {
+    background: #3b82f6;
+}
+
+/* Right Container */
+.exist-box-container {
+    flex: 1;
+    padding: 30px;
+    position: relative;
+    background: linear-gradient(135deg, #231f2057, #1a1a1aa6, #2325268c)
+}
+
+.section-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+/* Box List */
+.box-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Card Design */
+.exist-box-card {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid #d5ddec;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    width: 65rem;
+    height: 25rem;
+}
+
+.box-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.line {
+    padding: 10px;
+    background: #eef2ff;
+    border-left: 5px solid #3b82f6;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* Add User Button */
+.add-box-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+    font-size: 35px;
+    border: none;
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    cursor: pointer;
+    box-shadow: 0 5px 14px rgba(0,0,0,0.25);
+    transition: 0.25s;
+}
+
+.add-box-btn:hover {
+    transform: scale(1.12);
+    background: #1d4ed8;
+}
